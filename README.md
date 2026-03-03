@@ -295,6 +295,24 @@ Structured Diagnostic Report
 
 ---
 
+## 📸 Screenshots
+
+> To add screenshots: drag an image into any [GitHub Issue](https://github.com/Satyam-Jsr/OrphaMind/issues/new) comment box → GitHub gives you a permanent URL → paste it below, replacing the placeholder.
+
+**Diagnosis Tab**
+![Diagnosis tab — enter a clinical note and get a ranked differential diagnosis](https://github.com/user-attachments/assets/REPLACE_WITH_DIAGNOSE_SCREENSHOT)
+
+**Results Panel**
+![Results panel — confidence scores, reasoning, recommended tests, literature references](https://github.com/user-attachments/assets/REPLACE_WITH_RESULTS_SCREENSHOT)
+
+**Disease Search**
+![Disease search — search 11,456 Orphanet diseases by name, gene, acronym or symptom](https://github.com/user-attachments/assets/REPLACE_WITH_SEARCH_SCREENSHOT)
+
+**Patient History**
+![History tab — browse all past diagnoses, click to reload any case](https://github.com/user-attachments/assets/REPLACE_WITH_HISTORY_SCREENSHOT)
+
+---
+
 ##  Team
 
 Mirage
