@@ -297,19 +297,21 @@ Structured Diagnostic Report
 
 ## 📸 Screenshots
 
-> To add screenshots: drag an image into any [GitHub Issue](https://github.com/Satyam-Jsr/OrphaMind/issues/new) comment box → GitHub gives you a permanent URL → paste it below, replacing the placeholder.
+**Main Dashboard — Diagnosis & Results**
+![Main dashboard with diagnosis results](https://github.com/user-attachments/assets/2982c55d-1d50-4fc7-8b7a-1ed259007109)
 
-**Diagnosis Tab**
-![Diagnosis tab — enter a clinical note and get a ranked differential diagnosis](https://github.com/user-attachments/assets/REPLACE_WITH_DIAGNOSE_SCREENSHOT)
+![Main dashboard differential diagnosis](https://github.com/user-attachments/assets/12d5000a-6632-428a-b9a4-65f71f4fa871)
 
-**Results Panel**
-![Results panel — confidence scores, reasoning, recommended tests, literature references](https://github.com/user-attachments/assets/REPLACE_WITH_RESULTS_SCREENSHOT)
+**Literature Evidence**
+![Literature evidence panel](https://github.com/user-attachments/assets/4da30d9c-655a-47c7-81eb-9a2568ffd195)
+
+**Symptom Builder**
+![Symptom builder interface](https://github.com/user-attachments/assets/331c8749-69fe-4b23-8dbf-a07d33cdf0f6)
 
 **Disease Search**
-![Disease search — search 11,456 Orphanet diseases by name, gene, acronym or symptom](https://github.com/user-attachments/assets/REPLACE_WITH_SEARCH_SCREENSHOT)
+![Disease search results](https://github.com/user-attachments/assets/9e12dd9c-3f14-490b-b5d5-45c617f0ee5b)
 
-**Patient History**
-![History tab — browse all past diagnoses, click to reload any case](https://github.com/user-attachments/assets/REPLACE_WITH_HISTORY_SCREENSHOT)
+![Disease detail modal](https://github.com/user-attachments/assets/1554c9a6-897e-435f-ad3e-cec8de9ed43c)
 
 ---
 
