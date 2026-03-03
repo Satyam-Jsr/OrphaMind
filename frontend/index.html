@@ -1,0 +1,744 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OrphaMind — Rare Disease Diagnostic AI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; }
+
+    header { background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%); border-bottom: 1px solid #2d3748; padding: 18px 32px; display: flex; align-items: center; gap: 14px; }
+    header .logo { width: 38px; height: 38px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    header h1 { font-size: 22px; font-weight: 700; color: #f7fafc; }
+    header p  { font-size: 13px; color: #718096; margin-top: 2px; }
+    .header-right { margin-left: auto; display: flex; align-items: center; gap: 18px; }
+    .status-dot { display: flex; align-items: center; gap: 7px; font-size: 13px; color: #68d391; }
+    .status-dot::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: #68d391; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+    /* backend toggle */
+    .backend-toggle { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #718096; }
+    .backend-toggle label { cursor: pointer; display: flex; align-items: center; gap: 5px; }
+    .toggle-switch { position:relative; width:36px; height:20px; }
+    .toggle-switch input { opacity:0; width:0; height:0; }
+    .toggle-slider { position:absolute; cursor:pointer; top:0;left:0;right:0;bottom:0; background:#2d3748; border-radius:20px; transition:.3s; }
+    .toggle-slider:before { position:absolute; content:""; height:14px; width:14px; left:3px; bottom:3px; background:#a0aec0; border-radius:50%; transition:.3s; }
+    input:checked + .toggle-slider { background:#764ba2; }
+    input:checked + .toggle-slider:before { transform:translateX(16px); background:#fff; }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 760px) { .container { grid-template-columns: 1fr; } }
+
+    .card { background: #1a1f2e; border: 1px solid #2d3748; border-radius: 14px; padding: 24px; }
+    .card-title { font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing:.06em; color: #a0aec0; margin-bottom: 16px; }
+
+    textarea { width:100%; height:180px; background:#0d1117; border:1px solid #2d3748; border-radius:10px; color:#e2e8f0; font-size:14px; line-height:1.6; padding:14px; resize:vertical; outline:none; transition:border-color .2s; }
+    textarea:focus { border-color:#667eea; }
+    textarea.error { border-color:#fc8181; }
+    textarea::placeholder { color:#4a5568; }
+
+    .validation-msg { font-size:12px; margin-top:6px; min-height:16px; }
+    .validation-msg.err { color:#fc8181; } .validation-msg.ok { color:#68d391; }
+
+    .options-row { display:flex; gap:12px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+    .options-row label { font-size:13px; color:#a0aec0; }
+    select { background:#0d1117; border:1px solid #2d3748; color:#e2e8f0; border-radius:7px; padding:6px 10px; font-size:13px; outline:none; }
+
+    .btn { margin-top:14px; width:100%; padding:13px; background:linear-gradient(135deg,#667eea,#764ba2); border:none; border-radius:10px; color:#fff; font-size:15px; font-weight:600; cursor:pointer; transition:opacity .2s,transform .1s; }
+    .btn:hover { opacity:.88; } .btn:active { transform:scale(.98); } .btn:disabled { opacity:.45; cursor:not-allowed; }
+    .btn-secondary { background:#2d3748; border:1px solid #4a5568; color:#e2e8f0; font-size:13px; padding:8px 16px; border-radius:8px; cursor:pointer; transition:background .15s; }
+    .btn-secondary:hover { background:#4a5568; }
+
+    /* OCR */
+    .ocr-row { display:flex; gap:8px; align-items:center; margin-top:10px; }
+    .file-label { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; background:#2d3748; border:1px solid #4a5568; border-radius:8px; font-size:13px; color:#a0aec0; cursor:pointer; transition:background .15s; }
+    .file-label:hover { background:#4a5568; color:#f7fafc; }
+    #fileInput { display:none; }
+    .ocr-status { font-size:12px; color:#718096; }
+
+    /* examples */
+    .examples { margin-top:16px; }
+    .examples p { font-size:12px; color:#718096; margin-bottom:8px; }
+    .example-chips { display:flex; gap:8px; flex-wrap:wrap; }
+    .chip { background:#2d3748; border:1px solid #4a5568; border-radius:20px; padding:5px 12px; font-size:12px; color:#a0aec0; cursor:pointer; transition:background .15s,color .15s; }
+    .chip:hover { background:#4a5568; color:#f7fafc; }
+
+    /* Symptom checker */
+    .symptom-section { margin-top:18px; }
+    .symptom-section .card-title { margin-bottom:10px; }
+    .symptom-search-row { display:flex; gap:8px; }
+    .symptom-search-input { flex:1; background:#0d1117; border:1px solid #2d3748; border-radius:8px; color:#e2e8f0; font-size:13px; padding:8px 12px; outline:none; transition:border-color .2s; }
+    .symptom-search-input:focus { border-color:#667eea; }
+    .symptom-suggestions { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; max-height:120px; overflow-y:auto; }
+    .symptom-tag { background:#667eea22; border:1px solid #667eea55; border-radius:6px; padding:3px 10px; font-size:12px; color:#a0aec0; cursor:pointer; }
+    .symptom-tag:hover { background:#667eea44; color:#f7fafc; }
+    .selected-symptoms { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; min-height:24px; }
+    .sel-chip { background:#667eea33; border:1px solid #667eea; border-radius:6px; padding:3px 10px; font-size:12px; color:#a9c5ff; cursor:pointer; }
+    .sel-chip:hover { background:#fc818133; border-color:#fc8181; color:#fc8181; }
+    .build-btn { margin-top:8px; font-size:12px; padding:6px 14px; }
+
+    /* results */
+    .results-panel { display:flex; flex-direction:column; gap:16px; }
+    .loading { display:none; text-align:center; padding:40px 0; color:#718096; }
+    .spinner { width:36px; height:36px; border:3px solid #2d3748; border-top-color:#667eea; border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 14px; }
+    @keyframes spin { to{ transform:rotate(360deg) } }
+    .loading-steps span { display:block; opacity:0; transition:opacity .4s; }
+    .loading-steps span.active { opacity:1; color:#667eea; }
+    .empty-state { text-align:center; padding:50px 0; color:#4a5568; }
+    .empty-state .icon { font-size:48px; margin-bottom:12px; }
+
+    /* urgency */
+    .urgency { display:inline-block; padding:4px 12px; border-radius:20px; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+    .urgency.routine   { background:#1a3a2a; color:#68d391; border:1px solid #276749; }
+    .urgency.urgent    { background:#3d2a00; color:#f6ad55; border:1px solid #744210; }
+    .urgency.emergency { background:#3d0000; color:#fc8181; border:1px solid #742020; }
+
+    /* disease card */
+    .disease-card { background:#0d1117; border:1px solid #2d3748; border-radius:10px; padding:16px; margin-bottom:12px; transition:border-color .2s; }
+    .disease-card:hover { border-color:#667eea; }
+    .disease-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; }
+    .disease-name { font-size:15px; font-weight:600; color:#f7fafc; }
+    .confidence-label { font-size:13px; font-weight:700; color:#667eea; white-space:nowrap; margin-left:10px; }
+    .confidence-bar { height:5px; background:#2d3748; border-radius:3px; margin-bottom:10px; overflow:hidden; }
+    .confidence-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,#667eea,#764ba2); transition:width 1s ease; }
+    .disease-reasoning { font-size:13px; color:#a0aec0; line-height:1.6; margin-bottom:10px; }
+    .evidence-badge { display:inline-block; padding:2px 9px; border-radius:4px; font-size:11px; font-weight:600; text-transform:uppercase; }
+    .evidence-strong   { background:#1a3a2a; color:#68d391; }
+    .evidence-moderate { background:#1a2a3a; color:#63b3ed; }
+    .evidence-weak     { background:#2a2a1a; color:#f6e05e; }
+    .verified-badge { display:inline-block; padding:2px 9px; border-radius:4px; font-size:10px; font-weight:700; text-transform:uppercase; margin-left:6px; }
+    .verified-yes { background:#1a3a2a; color:#68d391; }
+    .verified-no  { background:#2a1a1a; color:#fc8181; }
+
+    /* lab panel */
+    .lab-panel { margin-top:14px; }
+    .lab-item { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid #2d3748; font-size:13px; }
+    .lab-item:last-child { border-bottom:none; }
+    .lab-name { color:#a0aec0; }
+    .lab-value { font-weight:700; }
+    .lab-normal { color:#68d391; } .lab-high { color:#f6ad55; } .lab-critical_high,.lab-critical_low { color:#fc8181; }
+    .lab-flag { font-size:11px; margin-left:8px; }
+
+    /* tests list */
+    .tests-list { list-style:none; }
+    .tests-list li { padding:9px 0; border-bottom:1px solid #2d3748; font-size:13px; color:#a0aec0; display:flex; gap:10px; align-items:flex-start; }
+    .tests-list li:last-child { border-bottom:none; }
+    .tests-list li::before { content:'◆'; color:#667eea; font-size:8px; margin-top:4px; flex-shrink:0; }
+
+    /* lit */
+    .lit-item { background:#0d1117; border-left:3px solid #667eea; border-radius:0 8px 8px 0; padding:10px 14px; margin-bottom:8px; }
+    .lit-source { font-size:11px; color:#667eea; font-weight:600; margin-bottom:4px; }
+    .lit-content { font-size:12px; color:#718096; line-height:1.5; }
+
+    .meta-row { display:flex; gap:16px; flex-wrap:wrap; font-size:12px; color:#718096; margin-bottom:16px; }
+    .meta-row span { display:flex; gap:5px; align-items:center; }
+
+    .search-section { grid-column:1/-1; }
+    .search-row { display:flex; gap:10px; margin-bottom:16px; }
+    .search-input { flex:1; background:#0d1117; border:1px solid #2d3748; border-radius:10px; color:#e2e8f0; font-size:14px; padding:11px 14px; outline:none; transition:border-color .2s; }
+    .search-input:focus { border-color:#667eea; }
+    .btn-sm { padding:11px 20px; background:#2d3748; border:1px solid #4a5568; border-radius:10px; color:#e2e8f0; font-size:14px; cursor:pointer; transition:background .15s; }
+    .btn-sm:hover { background:#4a5568; }
+    .search-results { display:flex; flex-wrap:wrap; gap:10px; }
+    .disease-pill { background:#1a1f2e; border:1px solid #2d3748; border-radius:8px; padding:8px 14px; font-size:13px; }
+    .disease-pill .pill-name { color:#f7fafc; font-weight:500; }
+    .disease-pill .pill-id   { color:#718096; font-size:11px; margin-top:2px; }
+
+    /* history */
+    .history-section { grid-column:1/-1; }
+    .history-row { display:flex; gap:10px; align-items:flex-end; margin-bottom:12px; flex-wrap:wrap; }
+    .history-input { background:#0d1117; border:1px solid #2d3748; border-radius:8px; color:#e2e8f0; font-size:13px; padding:8px 12px; outline:none; width:200px; }
+    .history-results { display:flex; flex-direction:column; gap:8px; }
+    .history-item { background:#0d1117; border:1px solid #2d3748; border-radius:8px; padding:12px 16px; font-size:13px; cursor:pointer; transition:border-color .2s; }
+    .history-item:hover { border-color:#667eea; }
+    .history-item .hi-top { font-weight:600; color:#f7fafc; margin-bottom:4px; }
+    .history-item .hi-meta { color:#718096; font-size:12px; }
+    .urgency-inline { padding:1px 7px; border-radius:10px; font-size:10px; font-weight:700; text-transform:uppercase; }
+
+    details summary { cursor:pointer; font-size:13px; color:#718096; margin-top:10px; list-style:none; }
+    details summary::-webkit-details-marker { display:none; }
+    details summary::before { content:'▶  '; font-size:10px; }
+    details[open] summary::before { content:'▼  '; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🧬</div>
+  <div>
+    <h1>OrphaMind</h1>
+    <p>AI-Powered Rare Disease Diagnostic System v2.0</p>
+  </div>
+  <div class="header-right">
+    <div class="backend-toggle">
+      <span>Gemini</span>
+      <label class="toggle-switch" title="Toggle Local LLM">
+        <input type="checkbox" id="backendToggle" onchange="switchBackend(this.checked)" />
+        <span class="toggle-slider"></span>
+      </label>
+      <span>Local LLM</span>
+    </div>
+    <div class="status-dot" id="statusText">Connecting…</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ── Left: Input ── -->
+  <div>
+    <div class="card">
+      <div class="card-title">Clinical Note</div>
+      <textarea id="clinicalNote"
+        placeholder="Paste or type the clinical note here…&#10;&#10;Example: 8-year-old male with progressive proximal muscle weakness, calf pseudohypertrophy, positive Gowers sign. CK 8500 U/L."
+        oninput="liveValidate(this.value)"></textarea>
+      <div class="validation-msg" id="validationMsg"></div>
+
+      <!-- OCR row -->
+      <div class="ocr-row">
+        <label class="file-label" for="fileInput">📷 Upload Image (OCR)</label>
+        <input type="file" id="fileInput" accept="image/*" onchange="handleOCR(this)" />
+        <span class="ocr-status" id="ocrStatus"></span>
+      </div>
+
+      <div class="options-row">
+        <label>Top diagnoses:</label>
+        <select id="topK">
+          <option value="3">3</option>
+          <option value="5" selected>5</option>
+          <option value="10">10</option>
+        </select>
+        <label style="margin-left:12px">Patient ID:</label>
+        <input id="patientId" type="text" placeholder="optional"
+          style="background:#0d1117;border:1px solid #2d3748;color:#e2e8f0;border-radius:7px;padding:6px 10px;font-size:13px;outline:none;width:110px" />
+        <label style="margin-left:12px">Literature:</label>
+        <select id="includeLit">
+          <option value="true" selected>Yes</option>
+          <option value="false">No</option>
+        </select>
+      </div>
+
+      <button class="btn" id="diagnoseBtn" onclick="diagnose()">
+        🔍 &nbsp;Analyze Clinical Note
+      </button>
+
+      <div class="examples">
+        <p>Quick examples:</p>
+        <div class="example-chips">
+          <div class="chip" onclick="loadExample('dmd')">Duchenne MD</div>
+          <div class="chip" onclick="loadExample('cf')">Cystic Fibrosis</div>
+          <div class="chip" onclick="loadExample('wilson')">Wilson Disease</div>
+          <div class="chip" onclick="loadExample('gaucher')">Gaucher Disease</div>
+          <div class="chip" onclick="loadExample('huntington')">Huntington</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Symptom Checker ── -->
+    <div class="card symptom-section" style="margin-top:16px">
+      <div class="card-title">Symptom Checker — Build Clinical Note</div>
+      <div class="symptom-search-row">
+        <input class="symptom-search-input" id="symptomSearch" placeholder="Type symptom, e.g. muscle weakness…"
+               oninput="filterSymptoms(this.value)" onkeydown="if(event.key==='Enter'){addSymptomFromInput();}" />
+        <button class="btn-secondary" onclick="addSymptomFromInput()">Add</button>
+      </div>
+      <div class="symptom-suggestions" id="symptomSuggestions"></div>
+      <div style="font-size:12px;color:#718096;margin-top:8px">Selected symptoms (<span id="selCount">0</span>):</div>
+      <div class="selected-symptoms" id="selectedSymptoms">
+        <span style="font-size:12px;color:#4a5568">None yet — search and click to add</span>
+      </div>
+      <button class="btn-secondary build-btn" onclick="buildNoteFromSymptoms()" style="margin-top:10px">
+        📝 Build Clinical Note from Symptoms
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Right: Results ── -->
+  <div class="results-panel">
+
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <div style="font-size:14px;color:#a0aec0">Analyzing with AI…</div>
+      <div class="loading-steps" style="margin-top:10px">
+        <span id="step1">① Extracting clinical features…</span>
+        <span id="step2">② Searching 87,848 literature docs…</span>
+        <span id="step3">③ Reasoning over 11,456 diseases…</span>
+        <span id="step4">④ Generating differential diagnosis…</span>
+      </div>
+    </div>
+
+    <div class="empty-state" id="emptyState">
+      <div class="icon">🔬</div>
+      <p>Enter a clinical note and click Analyze</p>
+    </div>
+
+    <div id="resultsContainer" style="display:none"><!-- filled by JS --></div>
+  </div>
+
+  <!-- ── Disease Search ── -->
+  <div class="card search-section">
+    <div class="card-title">Disease Database Search &nbsp;·&nbsp; 11,456 rare diseases</div>
+    <div class="search-row">
+      <input class="search-input" id="searchInput"
+             placeholder="Search by disease name, e.g. Fabry, Pompe, Marfan…"
+             onkeydown="if(event.key==='Enter') searchDiseases()" />
+      <button class="btn-sm" onclick="searchDiseases()">Search</button>
+    </div>
+    <div class="search-results" id="searchResults"></div>
+  </div>
+
+  <!-- ── Patient History ── -->
+  <div class="card history-section">
+    <div class="card-title">Patient Case History</div>
+    <div class="history-row">
+      <div>
+        <div style="font-size:12px;color:#718096;margin-bottom:4px">Patient ID</div>
+        <input class="history-input" id="historyPatientId" placeholder="e.g. P001" />
+      </div>
+      <button class="btn-secondary" onclick="loadHistory()">Load History</button>
+      <button class="btn-secondary" onclick="loadAllPatients()">All Patients</button>
+    </div>
+    <div class="history-results" id="historyResults">
+      <span style="font-size:13px;color:#4a5568">Enter a patient ID and click Load History</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'http://localhost:8000';
+let currentBackend = 'gemini';
+
+const SYMPTOMS_DB = [
+  "muscle weakness","progressive muscle weakness","proximal muscle weakness","distal muscle weakness",
+  "muscle atrophy","muscle cramps","myotonia","rhabdomyolysis",
+  "cardiomyopathy","arrhythmia","congestive heart failure",
+  "hepatomegaly","splenomegaly","hepatosplenomegaly","jaundice","liver failure",
+  "seizures","epilepsy","developmental delay","intellectual disability","regression",
+  "ataxia","cerebellar ataxia","tremor","chorea","dystonia","parkinsonism",
+  "ptosis","ophthalmoplegia","nystagmus","cataracts","retinitis pigmentosa",
+  "peripheral neuropathy","sensory loss","areflexia","hypotonia","spasticity",
+  "failure to thrive","short stature","macrocephaly","microcephaly",
+  "recurrent infections","immunodeficiency","lymphopenia",
+  "anemia","thrombocytopenia","pancytopenia","coagulopathy",
+  "dysphagia","vomiting","diarrhea","malabsorption","steatorrhea",
+  "bone pain","fractures","kyphosis","scoliosis","joint hypermobility",
+  "skin rash","angiokeratoma","photosensitivity","alopecia",
+  "proteinuria","hematuria","renal failure","nephrotic syndrome",
+  "pulmonary fibrosis","bronchiectasis","recurrent pneumonia","respiratory failure",
+  "cherry red spot","foam cells","vacuolated lymphocytes","Kayser-Fleischer rings",
+  "pseudohypertrophy","Gowers sign","elevated CK","elevated LDH"
+];
+
+let selectedSymptoms = new Set();
+
+// ── Startup ──────────────────────────────────────────────────────────────────
+window.onload = async () => {
+  await checkHealth();
+  renderSymptomSuggestions('');
+};
+
+async function checkHealth() {
+  try {
+    const r = await fetch(`${API}/health`);
+    const d = await r.json();
+    const el = document.getElementById('statusText');
+    if (d.status === 'healthy') {
+      el.textContent = `API Online · ${d.diseases_loaded.toLocaleString()} diseases · ${(d.llm_backend||'gemini').toUpperCase()}`;
+      el.style.color = '#68d391';
+      if (d.llm_backend === 'local') {
+        document.getElementById('backendToggle').checked = true;
+        currentBackend = 'local';
+      }
+    } else {
+      el.textContent = 'API Degraded'; el.style.color = '#f6ad55';
+    }
+  } catch {
+    const el = document.getElementById('statusText');
+    el.textContent = 'API Offline'; el.style.color = '#fc8181';
+  }
+}
+
+// ── Backend toggle ────────────────────────────────────────────────────────────
+function switchBackend(isLocal) {
+  currentBackend = isLocal ? 'local' : 'gemini';
+  const note = document.getElementById('clinicalNote');
+  note.style.borderColor = '';
+  document.getElementById('validationMsg').textContent =
+    `⚠ Backend change requires server restart with LLM_BACKEND=${currentBackend} in .env`;
+  document.getElementById('validationMsg').className = 'validation-msg err';
+}
+
+// ── Live validation ───────────────────────────────────────────────────────────
+let validateTimer;
+function liveValidate(text) {
+  clearTimeout(validateTimer);
+  const msg = document.getElementById('validationMsg');
+  const ta  = document.getElementById('clinicalNote');
+  if (!text.trim()) { msg.textContent = ''; ta.classList.remove('error'); return; }
+  validateTimer = setTimeout(async () => {
+    try {
+      const r = await fetch(`${API}/validate-note`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({text})
+      });
+      const d = await r.json();
+      if (d.valid) {
+        msg.textContent = '✓ Input looks good'; msg.className = 'validation-msg ok';
+        ta.classList.remove('error');
+      } else {
+        msg.textContent = '✗ ' + d.reason; msg.className = 'validation-msg err';
+        ta.classList.add('error');
+      }
+    } catch {}
+  }, 600);
+}
+
+// ── OCR ───────────────────────────────────────────────────────────────────────
+async function handleOCR(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const status = document.getElementById('ocrStatus');
+  status.textContent = '⏳ Extracting text…';
+  const form = new FormData();
+  form.append('file', file);
+  try {
+    const r = await fetch(`${API}/ocr-note`, { method:'POST', body: form });
+    const d = await r.json();
+    if (r.ok) {
+      document.getElementById('clinicalNote').value = d.extracted_text;
+      status.textContent = `✓ ${d.char_count} chars extracted` +
+        (d.detected_labs.length ? ` · ${d.detected_labs.length} labs detected` : '');
+      status.style.color = '#68d391';
+      liveValidate(d.extracted_text);
+    } else {
+      status.textContent = '✗ ' + (d.detail || 'OCR failed');
+      status.style.color = '#fc8181';
+    }
+  } catch(e) {
+    status.textContent = '✗ OCR request failed'; status.style.color = '#fc8181';
+  }
+  input.value = '';
+}
+
+// ── Symptom checker ───────────────────────────────────────────────────────────
+function filterSymptoms(q) {
+  const lower = q.toLowerCase();
+  const filtered = q.length < 2
+    ? SYMPTOMS_DB.slice(0, 20)
+    : SYMPTOMS_DB.filter(s => s.includes(lower)).slice(0, 15);
+  renderSymptomSuggestions('', filtered);
+}
+
+function renderSymptomSuggestions(q, list) {
+  const pool = list || SYMPTOMS_DB.slice(0, 24);
+  const el = document.getElementById('symptomSuggestions');
+  el.innerHTML = pool.map(s =>
+    `<span class="symptom-tag" onclick="toggleSymptom('${s}')">${s}</span>`
+  ).join('');
+}
+
+function addSymptomFromInput() {
+  const val = document.getElementById('symptomSearch').value.trim();
+  if (val) { toggleSymptom(val.toLowerCase()); document.getElementById('symptomSearch').value = ''; }
+}
+
+function toggleSymptom(sym) {
+  if (selectedSymptoms.has(sym)) selectedSymptoms.delete(sym);
+  else selectedSymptoms.add(sym);
+  renderSelected();
+}
+
+function renderSelected() {
+  const el = document.getElementById('selectedSymptoms');
+  document.getElementById('selCount').textContent = selectedSymptoms.size;
+  if (!selectedSymptoms.size) {
+    el.innerHTML = '<span style="font-size:12px;color:#4a5568">None — click symptoms above to add</span>';
+    return;
+  }
+  el.innerHTML = [...selectedSymptoms].map(s =>
+    `<span class="sel-chip" onclick="toggleSymptom('${s}')" title="Click to remove">${s} ×</span>`
+  ).join('');
+}
+
+function buildNoteFromSymptoms() {
+  if (!selectedSymptoms.size) { alert('Add some symptoms first.'); return; }
+  const pid = document.getElementById('patientId').value.trim() || 'patient';
+  const symptoms = [...selectedSymptoms].join(', ');
+  const note = `${pid.charAt(0).toUpperCase()+pid.slice(1)} presenting with: ${symptoms}.`;
+  document.getElementById('clinicalNote').value = note;
+  liveValidate(note);
+}
+
+// ── Examples ──────────────────────────────────────────────────────────────────
+const EXAMPLES = {
+  dmd: `8-year-old male with 1-year history of progressive proximal muscle weakness. Difficulty climbing stairs and frequent falls. Calf pseudohypertrophy, positive Gowers sign. CK 8500 U/L. Maternal uncle died young.`,
+  cf:  `6-year-old female with recurrent pulmonary infections, chronic productive cough, failure to thrive (<3rd percentile), steatorrhea. Sweat chloride 85 mEq/L. Chest X-ray: hyperinflation and bronchiectasis.`,
+  wilson: `19-year-old male, 6-month tremor, dysarthria, personality changes. AST 180, ALT 210. Kayser-Fleischer rings bilaterally. Ceruloplasmin 8 mg/dL. 24h urine copper elevated.`,
+  gaucher: `35-year-old female, splenomegaly, platelets 60k, bone pain. MRI: Erlenmeyer flask deformity. β-glucocerebrosidase markedly reduced. Ashkenazi Jewish ancestry.`,
+  huntington: `42-year-old male, involuntary choreiform movements, progressive cognitive decline, irritability, depression. Father died at 58 with similar symptoms. MRI: caudate atrophy.`
+};
+
+function loadExample(key) {
+  document.getElementById('clinicalNote').value = EXAMPLES[key];
+  liveValidate(EXAMPLES[key]);
+}
+
+// ── Diagnose ──────────────────────────────────────────────────────────────────
+let stepTimer;
+function startLoadingSteps() {
+  const steps = ['step1','step2','step3','step4'];
+  let i = 0;
+  steps.forEach(s => document.getElementById(s).classList.remove('active'));
+  stepTimer = setInterval(() => {
+    if (i < steps.length) { document.getElementById(steps[i]).classList.add('active'); i++; }
+  }, 6000);
+}
+function stopLoadingSteps() { clearInterval(stepTimer); }
+
+async function diagnose() {
+  const note = document.getElementById('clinicalNote').value.trim();
+  if (!note) { alert('Please enter a clinical note.'); return; }
+
+  // Validate before sending
+  try {
+    const vr = await fetch(`${API}/validate-note`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({text: note})
+    });
+    const vd = await vr.json();
+    if (!vd.valid) {
+      document.getElementById('clinicalNote').classList.add('error');
+      document.getElementById('validationMsg').textContent = '✗ ' + vd.reason;
+      document.getElementById('validationMsg').className = 'validation-msg err';
+      return;
+    }
+  } catch {}
+
+  const btn = document.getElementById('diagnoseBtn');
+  btn.disabled = true;
+  document.getElementById('loading').style.display = 'block';
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultsContainer').style.display = 'none';
+  startLoadingSteps();
+
+  try {
+    const resp = await fetch(`${API}/diagnose`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        clinical_note: note,
+        patient_id: document.getElementById('patientId').value.trim() || null,
+        top_k_diseases: parseInt(document.getElementById('topK').value),
+        include_literature: document.getElementById('includeLit').value === 'true',
+        save_to_history: true
+      })
+    });
+    const data = await resp.json();
+    stopLoadingSteps();
+    document.getElementById('loading').style.display = 'none';
+    if (resp.ok) renderResults(data);
+    else renderError(data.detail || 'Unknown error');
+  } catch(e) {
+    stopLoadingSteps();
+    document.getElementById('loading').style.display = 'none';
+    renderError('Cannot reach API at ' + API + '. Is the backend running?');
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderResults(data) {
+  const container = document.getElementById('resultsContainer');
+  container.style.display = 'block';
+  const urgencyClass = (data.urgency || 'routine').toLowerCase();
+  const ms = Math.round(data.processing_time_ms || 0);
+  const backend = (data.llm_backend || 'gemini').toUpperCase();
+  const caseId = data.case_id;
+
+  let html = `
+    <div class="card" style="margin-bottom:0">
+      <div class="card-title">Differential Diagnosis</div>
+      <div class="meta-row">
+        <span>⏱ ${(ms/1000).toFixed(1)}s</span>
+        <span>Urgency: <span class="urgency ${urgencyClass}">${data.urgency||'routine'}</span></span>
+        <span style="color:#764ba2">⚙ ${backend}</span>
+        ${caseId ? `<span style="color:#718096">💾 Case #${caseId}</span>` : ''}
+      </div>`;
+
+  (data.differential_diagnosis || []).forEach((d, i) => {
+    const evClass = `evidence-${(d.evidence_strength||'moderate').toLowerCase()}`;
+    const vBadge = d.verified_in_orphanet !== undefined
+      ? `<span class="verified-badge ${d.verified_in_orphanet?'verified-yes':'verified-no'}">${d.verified_in_orphanet?'✓ Verified':'⚠ Unverified'}</span>` : '';
+    const warnHtml = d.hallucination_warning
+      ? `<div style="font-size:11px;color:#f6ad55;margin-top:6px">⚠ ${d.hallucination_warning}</div>` : '';
+    const srcHtml = d.evidence_source
+      ? `<div style="font-size:11px;color:#718096;margin-top:4px">📚 ${d.evidence_source}</div>` : '';
+    html += `
+      <div class="disease-card">
+        <div class="disease-header">
+          <div class="disease-name">${i+1}. ${d.disease}</div>
+          <div class="confidence-label">${d.confidence}%</div>
+        </div>
+        <div class="confidence-bar"><div class="confidence-fill" style="width:${d.confidence}%"></div></div>
+        <div class="disease-reasoning">${d.reasoning}</div>
+        <span class="evidence-badge ${evClass}">${d.evidence_strength||'moderate'}</span>
+        ${vBadge}
+        ${d.orpha_id?`<span style="font-size:11px;color:#4a5568;margin-left:8px">ORPHA:${d.orpha_id}</span>`:''}
+        ${srcHtml}${warnHtml}
+      </div>`;
+  });
+  html += `</div>`;
+
+  // Lab analysis
+  if (data.lab_analysis && data.lab_analysis.length) {
+    html += `<div class="card" style="margin-bottom:0">
+      <div class="card-title">Lab Value Analysis (${data.lab_analysis.length} detected)</div>
+      <div class="lab-panel">`;
+    data.lab_analysis.forEach(l => {
+      const cls = l.status === 'normal' ? 'lab-normal' : l.status;
+      html += `<div class="lab-item">
+        <span class="lab-name">${l.name}</span>
+        <span class="lab-value ${cls}">${l.value} ${l.unit} <span class="lab-flag">${l.flag}</span></span>
+        <span style="font-size:11px;color:#4a5568">ref: ${l.normal_range}</span>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Recommended tests
+  if (data.recommended_tests && data.recommended_tests.length) {
+    html += `<div class="card" style="margin-bottom:0">
+      <div class="card-title">Recommended Tests</div>
+      <ul class="tests-list">${data.recommended_tests.map(t=>`<li>${t}</li>`).join('')}</ul>
+    </div>`;
+  }
+
+  // Literature
+  const lit = data.literature_references || [];
+  if (lit.length) {
+    html += `<div class="card" style="margin-bottom:0">
+      <div class="card-title">Literature Evidence (${lit.length} sources)</div>
+      ${lit.slice(0,3).map(r=>`
+        <div class="lit-item">
+          <div class="lit-source">${r.source||'Orphanet/GeneReviews'}</div>
+          <div class="lit-content">${(r.content||'').slice(0,220)}…</div>
+        </div>`).join('')}
+      ${lit.length>3?`<details><summary>Show ${lit.length-3} more</summary>
+        ${lit.slice(3).map(r=>`
+          <div class="lit-item" style="margin-top:8px">
+            <div class="lit-source">${r.source||''}</div>
+            <div class="lit-content">${(r.content||'').slice(0,220)}…</div>
+          </div>`).join('')}
+      </details>`:''}
+    </div>`;
+  }
+
+  // Disclaimer
+  if (data.disclaimer) {
+    html += `<div style="font-size:11px;color:#4a5568;padding:10px 0 0;line-height:1.6">
+      ℹ️ ${data.disclaimer}</div>`;
+  }
+
+  container.innerHTML = html;
+}
+
+function renderError(msg) {
+  const container = document.getElementById('resultsContainer');
+  container.style.display = 'block';
+  container.innerHTML = `<div class="card" style="border-color:#fc8181">
+    <div class="card-title" style="color:#fc8181">Error</div>
+    <p style="color:#a0aec0;font-size:14px">${msg}</p>
+  </div>`;
+}
+
+// ── Disease search ────────────────────────────────────────────────────────────
+async function searchDiseases() {
+  const q = document.getElementById('searchInput').value.trim();
+  if (!q) return;
+  const container = document.getElementById('searchResults');
+  container.innerHTML = '<span style="color:#718096;font-size:13px">Searching…</span>';
+  try {
+    const resp = await fetch(`${API}/diseases/search?query=${encodeURIComponent(q)}&limit=15`);
+    const data = await resp.json();
+    if (!data.results || !data.results.length) {
+      container.innerHTML = '<span style="color:#718096;font-size:13px">No results found.</span>';
+      return;
+    }
+    container.innerHTML = data.results.map(d => `
+      <div class="disease-pill">
+        <div class="pill-name">${d.name}</div>
+        <div class="pill-id">ORPHA:${d.orpha_id||'—'}</div>
+      </div>`).join('');
+  } catch {
+    container.innerHTML = '<span style="color:#fc8181;font-size:13px">Search failed.</span>';
+  }
+}
+
+// ── Patient history ───────────────────────────────────────────────────────────
+async function loadAllPatients() {
+  const container = document.getElementById('historyResults');
+  container.innerHTML = '<span style="color:#718096;font-size:13px">Loading…</span>';
+  try {
+    const r = await fetch(`${API}/patients`);
+    const d = await r.json();
+    const patients = d.patients || [];
+    if (!patients.length) {
+      container.innerHTML = '<span style="color:#718096;font-size:13px">No patients stored yet.</span>';
+      return;
+    }
+    container.innerHTML = `<div style="font-size:13px;color:#a0aec0;margin-bottom:8px">${patients.length} patients: ` +
+      patients.map(p => `<span class="sel-chip" style="cursor:pointer" onclick="document.getElementById('historyPatientId').value='${p}';loadHistory()">${p}</span>`).join('') +
+      `</div>`;
+  } catch {
+    container.innerHTML = '<span style="color:#fc8181;font-size:13px">Could not load patients.</span>';
+  }
+}
+
+async function loadHistory() {
+  const pid = document.getElementById('historyPatientId').value.trim();
+  if (!pid) { alert('Enter a patient ID.'); return; }
+  const container = document.getElementById('historyResults');
+  container.innerHTML = '<span style="color:#718096;font-size:13px">Loading…</span>';
+  try {
+    const r = await fetch(`${API}/patients/${encodeURIComponent(pid)}/history?limit=20`);
+    const d = await r.json();
+    const cases = d.cases || [];
+    if (!cases.length) {
+      container.innerHTML = `<span style="color:#718096;font-size:13px">No cases found for "${pid}".</span>`;
+      return;
+    }
+    container.innerHTML = cases.map(c => {
+      const dt = new Date(c.timestamp * 1000).toLocaleString();
+      const urgCls = c.urgency === 'emergency' ? '#fc8181' : c.urgency === 'urgent' ? '#f6ad55' : '#68d391';
+      return `<div class="history-item" onclick="viewCase(${c.id})">
+        <div class="hi-top">${c.top_diagnosis || 'Unknown'} &nbsp;
+          <span style="color:${urgCls};font-size:11px;font-weight:700;text-transform:uppercase">${c.urgency||'routine'}</span>
+          &nbsp;<span style="color:#4a5568;font-size:11px">Case #${c.id}</span>
+        </div>
+        <div class="hi-meta">🕐 ${dt} &nbsp;|&nbsp; Confidence: ${Math.round(c.confidence)}%</div>
+        <div class="hi-meta" style="margin-top:4px;color:#4a5568">${(c.clinical_note||'').slice(0,100)}…</div>
+      </div>`;
+    }).join('');
+  } catch {
+    container.innerHTML = `<span style="color:#fc8181;font-size:13px">Failed to load history.</span>`;
+  }
+}
+
+async function viewCase(caseId) {
+  try {
+    const r = await fetch(`${API}/cases/${caseId}`);
+    const d = await r.json();
+    const result = d.result || {};
+    renderResults({
+      ...result,
+      processing_time_ms: 0,
+      case_id: caseId,
+    });
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  } catch {
+    alert('Could not load case #' + caseId);
+  }
+}
+</script>
+</body>
+</html>

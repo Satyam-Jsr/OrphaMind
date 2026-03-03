@@ -1,0 +1,184 @@
+/* ═══════════════════════════════
+   OrphaMind — Design Tokens v2
+═══════════════════════════════ */
+:root {
+  --bg0:   #060a10;
+  --bg1:   #08101d;
+  --bg2:   #0d1829;
+  --bg3:   #122034;
+  --bg4:   #182840;
+  --border:        #1c2d44;
+  --border-bright: #2a4060;
+  --text:   #d4e2f5;
+  --text-2: #6a87a8;
+  --text-3: #334d68;
+  --accent: #3b82f6;
+  --accent2:#7c3aed;
+  --grd:    linear-gradient(135deg, #3b82f6, #7c3aed);
+  --green:  #34d399;
+  --orange: #f97316;
+  --red:    #ef4444;
+  --yellow: #f59e0b;
+  /* kept for old references */
+  --bg-card: var(--bg2);
+  --border-hover: var(--border-bright);
+  --text-primary: var(--text);
+  --text-secondary: var(--text-2);
+  --text-muted: var(--text-3);
+  --accent-2: var(--accent2);
+  --accent-grd: var(--grd);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 14px; }
+
+body {
+  background: var(--bg0);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+  background-image: radial-gradient(circle, #1c2d4415 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-attachment: fixed;
+}
+
+/* ── Scrollbar ──────────────────────────────────── */
+::-webkit-scrollbar          { width: 5px; height: 5px; }
+::-webkit-scrollbar-track    { background: var(--bg1); }
+::-webkit-scrollbar-thumb    { background: var(--bg4); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
+
+/* ── Animations ─────────────────────────────────── */
+@keyframes pulse   { 0%,100%{opacity:1}  50%{opacity:.25} }
+@keyframes spin    { to{transform:rotate(360deg)} }
+@keyframes fadeIn  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+@keyframes slideIn { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:none} }
+@keyframes shimmer { 0%{background-position:-600px 0} 100%{background-position:600px 0} }
+@keyframes stepIn  {
+  0%  { opacity:0; transform: scale(.75) translateX(-8px); }
+  65% { transform: scale(1.04); }
+  100%{ opacity:1; transform: scale(1); }
+}
+
+.animate-fade  { animation: fadeIn  .3s ease both; }
+.animate-slide { animation: slideIn .25s ease both; }
+
+/* ── Layout ─────────────────────────────────────── */
+.diagnose-grid {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  gap: 22px;
+  align-items: start;
+}
+@media (max-width: 900px) { .diagnose-grid { grid-template-columns: 1fr; } }
+
+/* ── Loading steps ──────────────────────────────── */
+.step-list { display:flex; flex-direction:column; gap:10px; width:100%; max-width:340px; }
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--text-2);
+  animation: stepIn .45s ease both;
+}
+.step-item.active { color: var(--text); border-color: var(--accent); background: #081628; }
+.step-item.done   { color: var(--green); border-color: #174830; background: #060f0a; }
+.step-dot {
+  width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+  background: var(--text-3);
+  transition: background .3s, box-shadow .3s;
+}
+.step-item.active .step-dot { background: var(--accent); animation: pulse 1.4s infinite; }
+.step-item.done   .step-dot { background: var(--green);  box-shadow: 0 0 8px var(--green); }
+
+/* ── Example chips ──────────────────────────────── */
+.ex-chip {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: #60a5fa;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .15s, border-color .15s, transform .1s;
+}
+.ex-chip:hover { background: var(--bg3); border-color: var(--border-bright); transform: translateY(-1px); }
+
+/* ── Symptom pills ──────────────────────────────── */
+.sym-pill {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  color: var(--text-2);
+  font-size: 11px;
+  padding: 4px 11px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .12s, border-color .12s, color .12s;
+}
+.sym-pill:hover { border-color: var(--border-bright); }
+.sym-pill.selected { background: #0b1e3e; border-color: #3b82f6; color: #93c5fd; }
+.sym-pill.selected:hover { background: #0e2448; }
+
+/* ── Scrollable containers ──────────────────────── */
+.scroll-y { overflow-y: auto; overflow-x: hidden; }
+
+/* ── CaseRow ────────────────────────────────────── */
+.case-row {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .12s;
+  margin-bottom: 8px;
+}
+.case-row:hover { border-color: var(--border-bright); background: var(--bg3); transform: translateX(2px); }
+
+/* ── Confidence bar ─────────────────────────────── */
+.conf-bar-track {
+  height: 4px;
+  background: var(--bg3);
+  border-radius: 2px;
+  overflow: hidden;
+  margin: 8px 0 12px;
+}
+.conf-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--grd);
+  transition: width 1.2s cubic-bezier(.4,0,.2,1);
+}
+
+/* ── Badge ──────────────────────────────────────── */
+.badge {
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 9px; border-radius: 20px;
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.badge-green   { background:#05180d; color:#34d399; border:1px solid #124027; }
+.badge-orange  { background:#1a0e04; color:#f97316; border:1px solid #401e06; }
+.badge-red     { background:#180404; color:#ef4444; border:1px solid #400e0e; }
+.badge-blue    { background:#050f1e; color:#60a5fa; border:1px solid #0e2644; }
+.badge-purple  { background:#0c0520; color:#a78bfa; border:1px solid #241060; }
+.badge-gray    { background:#0d1525; color:var(--text-2); border:1px solid var(--border); }
+
+/* ── Lab table ──────────────────────────────────── */
+.lab-normal        { color: var(--green); }
+.lab-high          { color: var(--orange); }
+.lab-low           { color: #60a5fa; }
+.lab-critical_high,
+.lab-critical_low  { color: var(--red); font-weight: 700; }
+.lab-row-crit      { background: #1e0404 !important; }
+.lab-row-high      { background: #160c02 !important; }
+.lab-row-low       { background: #030a18 !important; }

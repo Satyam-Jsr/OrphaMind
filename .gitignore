@@ -1,0 +1,76 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+dist/
+*.egg-info/
+
+# ── Secrets ───────────────────────────────────────────────────────────────────
+.env
+.env.local
+*.key
+
+# ── Large data / embeddings (rebuild locally with rag_system.py) ──────────────
+data/raw/datasets/
+data/raw/literature/
+src/data/embeddings/
+src/data/raw/
+src/data/processed/
+data/embeddings/
+chroma_db/
+chromadb_data/
+*.chroma/
+
+# Keep directory skeleton in git
+!data/raw/datasets/.gitkeep
+!src/data/embeddings/.gitkeep
+!src/data/processed/.gitkeep
+!src/data/raw/.gitkeep
+
+# ── Databases ─────────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+
+# ── Screenshots / presentations (not part of source) ─────────────────────────
+Screenshot*.png
+Screenshot*.jpg
+data/create_presentation.py
+data/PRESENTATION_*.md
+data/PRESENTATION_*.pdf
+data/SLIDE_*.md
+data/SLIDE_*.pdf
+data/VISUAL_ASSETS_GUIDE.md
+data/VISUAL_ASSETS_GUIDE.pdf
+data/DATA_SOURCES.pdf
+data/patient_history.db
+README.pdf
+DATA_STRATEGY.md
+RAG_IMPLEMENTATION_GUIDE.md
+API_TESTING.md
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+ui/node_modules/
+ui/dist/
+frontend/node_modules/
+frontend/dist/
+node_modules/
+.next/
+out/
+
+# ── IDEs / OS ─────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
